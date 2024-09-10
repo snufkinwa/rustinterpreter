@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://imgur.com/NYvUP9v.gif" />
+  <img src="https://imgur.com/UFORaRQ.gif" />
 </p>
 
 # Rust Interpreter Project - Codecrafters Challenge
