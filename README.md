@@ -15,7 +15,6 @@ In this challenge, the goal is to build an interpreter for the [Lox language](ht
 - **Tokenization**: Handles the process of breaking down input strings into meaningful symbols (tokens) used by the interpreter.
 - **Parsing**: Constructs an Abstract Syntax Tree (AST) from the tokens, forming the structure of the code for interpretation.
 - **AST Printer**: Outputs the structure of parsed expressions for debugging and testing.
-- **Scanning**: Converts characters into tokens, following the Lox language grammar.
 - **Tree-Walk Interpreter** (Coming Soon): Future work will include a tree-walk interpreter that directly interprets the Abstract Syntax Tree (AST) and executes the code.
 
 ## How to Run
@@ -28,13 +27,7 @@ In this challenge, the goal is to build an interpreter for the [Lox language](ht
    ./your_program.sh tokenize tests/test.lox
 ```
 
-3. **Scan a Lox file**: To tokenize your input Lox code:
-
-```bash
-   ./your_program.sh scanner tests/test.lox
-```
-
-4. Parse a Lox file: To parse your input Lox code and generate the AST:
+3. Parse a Lox file: To parse your input Lox code and generate the AST:
 
 ```bash
   ./your_program.sh parse tests/test.lox
@@ -45,7 +38,6 @@ In this challenge, the goal is to build an interpreter for the [Lox language](ht
 This project is organized into several core modules:
 
 - token: Responsible for handling the different types of tokens in Lox.
-- scanner: Scans through the source code and tokenizes it.
 - parser: Builds the Abstract Syntax Tree (AST) from tokens.
 - ast_printer: A utility for visualizing the AST.
 
