@@ -1,4 +1,4 @@
-use crate::parser::{Expr, Stmt};
+use crate::parser::parser::{Expr, Stmt, Literal};
 
 pub struct AstPrinter;
 
@@ -9,29 +9,23 @@ impl AstPrinter {
                 format!("({} {} {})", operator.lexeme, self.print_expr(left), self.print_expr(right))
             }
             Expr::Grouping(expr) => format!("(group {})", self.print_expr(expr)),
-            Expr::Literal(value) => {
-                match value {
-                    Some(v) => {
-                        if v.starts_with('"') && v.ends_with('"') {
-                            v[1..v.len()-1].to_string()
-                        } else if let Ok(num) = v.parse::<f64>() {
-                            if v.contains('.') {
-                                v.to_string()
-                            } else {
-                                format!("{:.1}", num)
-                            }
-                        } else {
-                            v.to_string()
-                        }
-                    },
-                    None => "nil".to_string(),
-                }
-            },
+            Expr::Literal(literal) => self.print_literal(literal),
             Expr::Variable(token) => token.lexeme.clone(),
-            Expr::Assign(name, value) => format!("(assign {} {})", self.print_expr(name), self.print_expr(value)),
+            Expr::Assign(name, value) => {
+                format!("(assign {} {})", name.lexeme, self.print_expr(value))
+            }
             Expr::Unary(operator, expr) => {
                 format!("({} {})", operator.lexeme, self.print_expr(expr))
             }
+        }
+    }
+
+    fn print_literal(&self, literal: &Literal) -> String {
+        match literal {
+            Literal::String(s) => s.clone(),
+            Literal::Number(n) => format_number_test!(n),
+            Literal::Bool(b) => format!("{}", b),
+            Literal::Nil => "nil".to_string(),
         }
     }
 

@@ -26,22 +26,29 @@ impl fmt::Display for TokenType {
             TokenType::Else => "ELSE".to_string(),
             TokenType::Number => "NUMBER".to_string(),
             TokenType::String => "STRING".to_string(),
-            _ => format!("{:?}", self).to_uppercase() 
+            _ => format!("{:?}", self).to_uppercase() // No need to take a reference here, just use the String
         };
         write!(f, "{}", token_str)
     }
 }
 
 #[derive(Debug, Clone)]
+pub enum Literal {
+    Str(String),
+    Num(f64),
+    Nil,
+}
+
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
-    pub literal: Option<String>,
+    pub literal: Literal,
     pub line: usize,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, lexeme: String, literal: Option<String>, line: usize) -> Self {
+    pub fn new(token_type: TokenType, lexeme: String, literal: Literal, line: usize) -> Self {
         Token {
             token_type,
             lexeme,
@@ -54,20 +61,9 @@ impl Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let literal_str = match &self.literal {
-            Some(lit) if self.token_type == TokenType::String => format!("{}", lit),
-            Some(lit) if self.token_type == TokenType::Number => {
-                if let Ok(num) = lit.parse::<f64>() {
-                    if num.fract() == 0.0 {
-                        format!("{:.1}", num)
-                    } else {
-                        format!("{}", num)
-                    }
-                } else {
-                    lit.to_string()
-                }
-            }
-            Some(lit) => lit.to_string(),
-            None => "null".to_string(),
+            Literal::Str(lit) => lit.clone(), 
+            Literal::Num(num) => format_number_test!(*num), 
+            Literal::Nil => "null".to_string(), 
         };
         
     

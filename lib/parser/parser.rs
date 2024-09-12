@@ -1,12 +1,20 @@
-use crate::token::token::{Token, TokenType};
+use crate::token::token::{ Token, TokenType };
 use std::fmt;
 use std::error::Error;
 
 #[derive(Debug)]
+pub enum Literal {
+    String(String),
+    Number(f64),
+    Nil,
+    Bool(bool),
+}
+
+#[derive(Debug)]
 pub enum Expr {
     Variable(Token),
-    Assign(Box<Expr>, Box<Expr>),
-    Literal(Option<String>),
+    Assign(Token, Box<Expr>),
+    Literal(Literal),
     Binary(Box<Expr>, Token, Box<Expr>),
     Grouping(Box<Expr>),
     Unary(Token, Box<Expr>),
@@ -21,7 +29,7 @@ pub enum Stmt {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct ParseError;
+pub struct ParseError;
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -79,18 +87,17 @@ impl Parser {
 
     fn consume(&mut self, token_type: TokenType, message: &str) -> Result<&Token, ParseError> {
         if self.check(token_type) {
-            Ok(self.advance())
+            return Ok(self.advance());
         } else {
-            Err(self.error(self.peek(), message))
+            let token = self.peek();
+            return Err(self.error(token, &format!("{} at line {}", message, token.line)));
         }
     }
 
     fn error(&self, token: &Token, message: &str) -> ParseError {
-        eprintln!("Error at {}: {}", token.lexeme, message);
+        eprintln!("Error on line {}: {}", token.line, message);
         ParseError
     }
-
-    // ----- Parsing Methods -----
 
     fn expression(&mut self) -> Result<Expr, ParseError> {
         self.assignment()
@@ -104,7 +111,7 @@ impl Parser {
             let value = self.assignment()?;
 
             if let Expr::Variable(var) = expr {
-                return Ok(Expr::Assign(Box::new(Expr::Variable(var)), Box::new(value)));
+                return Ok(Expr::Assign(var, Box::new(value)));
             } else {
                 return Err(self.error(&equals, "Invalid assignment target."));
             }
@@ -199,16 +206,23 @@ impl Parser {
 
     fn primary(&mut self) -> Result<Expr, ParseError> {
         if self.match_token(&[TokenType::False]) {
-            return Ok(Expr::Literal(Some("false".to_string())));
+            return Ok(Expr::Literal(Literal::Bool(false)));
         }
         if self.match_token(&[TokenType::True]) {
-            return Ok(Expr::Literal(Some("true".to_string())));
+            return Ok(Expr::Literal(Literal::Bool(true)));
         }
         if self.match_token(&[TokenType::Nil]) {
-            return Ok(Expr::Literal(None));
+            return Ok(Expr::Literal(Literal::Nil));
         }
-        if self.match_token(&[TokenType::Number, TokenType::String]) {
-            return Ok(Expr::Literal(Some(self.previous().lexeme.clone())));
+        if self.match_token(&[TokenType::Number]) {
+            let lexeme = self.previous().lexeme.clone();
+            let value: f64 = lexeme.parse().unwrap();
+            return Ok(Expr::Literal(Literal::Number(value)));
+        }
+        if self.match_token(&[TokenType::String]) {
+            let lexeme = self.previous().lexeme.clone();
+            let value = lexeme.trim_matches('"').to_string();
+            return Ok(Expr::Literal(Literal::String(value)));
         }
         if self.match_token(&[TokenType::Identifier]) {
             return Ok(Expr::Variable(self.previous().clone()));
@@ -221,8 +235,6 @@ impl Parser {
 
         Err(self.error(self.peek(), "Expect expression."))
     }
-
-    // ----- Statement Parsing -----
 
     fn var_declaration(&mut self) -> Result<Stmt, ParseError> {
         let name = self.consume(TokenType::Identifier, "Expect variable name.")?.clone();
@@ -248,7 +260,7 @@ impl Parser {
 
     fn print_statement(&mut self) -> Result<Stmt, ParseError> {
         let value = self.expression()?;
-        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        //self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
         Ok(Stmt::Print(value))
     }
 
@@ -295,15 +307,17 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Vec<Stmt> {
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, ParseError> {
         let mut statements = Vec::new();
         while !self.is_at_end() {
-            if let Ok(stmt) = self.declaration() {
-                statements.push(stmt);
-            } else {
-                self.synchronize();
+            match self.declaration() {
+                Ok(stmt) => statements.push(stmt),
+                Err(e) => {
+                    self.synchronize();
+                    return Err(e);
+                }
             }
         }
-        statements
+        Ok(statements)
     }
 }

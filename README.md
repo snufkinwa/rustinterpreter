@@ -23,15 +23,23 @@ In this challenge, the goal is to build an interpreter for the [Lox language](ht
 1. **Install dependencies**: This project uses Rust. Ensure that you have Rust installed by following the instructions [here](https://www.rust-lang.org/tools/install).
 
 2. **Tokenize a Lox file**: To tokenize your input Lox code:
+
 ```bash
    ./your_program.sh tokenize tests/test.lox
 ```
-  Parse a Lox file: To parse your input Lox code and generate the AST:
-  
-  ```bash
-    ./your_program.sh parse tests/test.lox
-   ```
-    
+
+3. **Scan a Lox file**: To tokenize your input Lox code:
+
+```bash
+   ./your_program.sh scanner tests/test.lox
+```
+
+4. Parse a Lox file: To parse your input Lox code and generate the AST:
+
+```bash
+  ./your_program.sh parse tests/test.lox
+```
+
 ## Development
 
 This project is organized into several core modules:
@@ -51,6 +59,8 @@ This project is organized into several core modules:
 [Crafting Interpreters](https://craftinginterpreters.com/)
 
 [Lox Language](https://craftinginterpreters.com/the-lox-language.html)
+
+[The Rust Reference](https://doc.rust-lang.org/reference/introduction.html)
 
 ## Progress
 

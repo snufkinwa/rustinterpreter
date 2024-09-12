@@ -1,0 +1,30 @@
+// Variable declaration and assignment
+var x = 10;
+var y = 20;
+
+// Basic arithmetic operations
+var sum = x + y;
+var difference = y - x;
+var product = x * y;
+var quotient = y / x;
+
+// Print the results
+print sum;        // Expected output: 30
+print difference; // Expected output: 10
+print product;    // Expected output: 200
+print quotient;   // Expected output: 2
+
+// Test boolean logic
+var is_equal = (x == y);    // false
+var is_greater = (y > x);   // true
+print is_equal;   // Expected output: false
+print is_greater; // Expected output: true
+
+// Test block scope
+{
+    var z = 50;
+    print z;  // Expected output: 50
+}
+
+print x;  // Expected output: 10
+// print z; Uncommenting this should cause an error (z is not in scope)
