@@ -137,14 +137,21 @@ fn parse_identifier(chars: &mut Peekable<std::slice::Iter<u8>>, tokens: &mut Vec
 fn parse_string(
     chars: &mut Peekable<Iter<u8>>, 
     tokens: &mut Vec<Token>, 
-    line: usize
+    mut line: usize
 ) -> Result<(), TokenizerError> {
-    let mut string_content = String::new();
-    chars.next(); // Consume the opening quote `"`
+    let mut utf8_bytes = Vec::new();  // To collect the bytes for the string content
+    chars.next(); // Consume the opening quote 
 
     while let Some(&c) = chars.peek() {
         if c == &b'"' {
             chars.next(); // Consume the closing quote
+
+            // Convert the collected bytes to a valid UTF-8 string
+            let string_content = match String::from_utf8(utf8_bytes) {
+                Ok(s) => s,
+                Err(_) => return Err(TokenizerError::InvalidUTF8String { line }),
+            };
+
             tokens.push(Token::new(
                 TokenType::String,
                 format!("\"{}\"", string_content),
@@ -154,21 +161,27 @@ fn parse_string(
             return Ok(()); // Successfully parsed string
         }
 
-        if c == &b'\n' || chars.peek().is_none() {
-            // Handle unterminated string error
+        if c == &b'\n' {
+            // Allow newlines inside strings, increment line number
+            utf8_bytes.push(b'\n');  // Push newline to the byte buffer
+            line += 1;
+            chars.next();
+            continue;
+        }
+
+        if chars.peek().is_none() {
+            // If we run out of characters, it's an unterminated string
             return Err(TokenizerError::UnterminatedString { line });
         }
 
-        // Append character to the string
-        string_content.push(*c as char);
-        chars.next(); // Move to the next character
+        // Collect the byte for the string content
+        utf8_bytes.push(*c);
+        chars.next(); 
     }
 
     // If we reach here, it means the string wasn't properly closed (unterminated)
     Err(TokenizerError::UnterminatedString { line })
 }
-
-
 
 fn parse_number(chars: &mut Peekable<std::slice::Iter<u8>>, tokens: &mut Vec<Token>, line: usize) {
     let mut value: f64 = 0.0;

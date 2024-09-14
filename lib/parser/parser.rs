@@ -42,11 +42,12 @@ impl Error for ParseError {}
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    pub require_semicolon: bool,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+    pub fn new(tokens: Vec<Token>, require_semicolon:bool) -> Self {
+        Parser { tokens, current: 0, require_semicolon }
     }
 
     fn advance(&mut self) -> &Token {
@@ -244,7 +245,9 @@ impl Parser {
             initializer = Some(self.expression()?);
         }
 
-        //self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
+        if self.require_semicolon {
+            self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
+        }
         Ok(Stmt::Var { name, initializer })
     }
 
@@ -260,13 +263,17 @@ impl Parser {
 
     fn print_statement(&mut self) -> Result<Stmt, ParseError> {
         let value = self.expression()?;
-        //self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        if self.require_semicolon {
+            self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        }
         Ok(Stmt::Print(value))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, ParseError> {
         let expr = self.expression()?;
-        //self.consume(TokenType::Semicolon, "Expect ';' after expression.")?;
+        if self.require_semicolon {
+            self.consume(TokenType::Semicolon, "Expect ';' after expression.")?;
+        }
         Ok(Stmt::Expression(expr))
     }
 
